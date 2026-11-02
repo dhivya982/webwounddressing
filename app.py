@@ -2,6 +2,10 @@ import pandas as pd
 import streamlit as st
 
 from bio_content import BURN_DEGREES, WHY_DRESSINGS_MATTER, WOUND_HEALING_STAGES
+from info_content import BURN_DEGREES as INFO_BURN_DEGREES
+from info_content import DISCLAIMER, SOURCES as INFO_SOURCES
+from info_content import WOUND_HEALING_STAGES as INFO_WOUND_HEALING_STAGES
+from info_content import WHY_DRESSINGS_MATTER as INFO_WHY_DRESSINGS_MATTER
 from levels import LEVELS
 from materials_b import DRESSINGS, SOURCES, WEIGHTS
 from materials_c import DESCRIPTIONS
@@ -114,21 +118,32 @@ def show_materials():
 def show_level_info():
     info_panel = st.popover("⭐ Info") if hasattr(st, "popover") else st.expander("⭐ Info")
     with info_panel:
-        science_tab, materials_tab = st.tabs(["🔬 Wound Healing Science", "🧬 Dressing Materials"])
+        science_tab, materials_tab, sources_tab = st.tabs(
+            ["🔬 Wound Healing Science", "🧬 Dressing Materials", "📚 Sources"]
+        )
         with science_tab:
-            st.write(WHY_DRESSINGS_MATTER)
-            st.subheader("Wound healing stages")
-            for stage in WOUND_HEALING_STAGES:
-                st.markdown("**" + stage["name"] + "**")
-                st.write(stage["description"])
+            st.subheader("Why Dressings Matter")
+            st.markdown(INFO_WHY_DRESSINGS_MATTER)
+            st.subheader("The 4 Stages of Wound Healing")
+            st.markdown(
+                "Healing happens in four overlapping phases, so one stage doesn't stop neatly "
+                "before the next begins."
+            )
+            for stage_name, stage_description in INFO_WOUND_HEALING_STAGES:
+                with st.expander(stage_name):
+                    st.markdown(stage_description)
             st.subheader("Burn degrees")
-            for burn in BURN_DEGREES:
-                st.markdown("**" + burn["name"] + "**")
-                st.write(burn["description"])
+            for burn_name, burn_description in INFO_BURN_DEGREES:
+                with st.expander(burn_name):
+                    st.markdown(burn_description)
         with materials_tab:
             for material_name in DESCRIPTIONS:
                 st.subheader(material_name)
                 st.write(DESCRIPTIONS[material_name])
+        with sources_tab:
+            for source_name, source_url in INFO_SOURCES:
+                st.markdown("[" + source_name + "](" + source_url + ")")
+            st.caption(DISCLAIMER)
 
 
 def show_level(level):
