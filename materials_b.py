@@ -25,8 +25,3 @@ WEIGHTS = {
     "cost": 0.2,
 }
 
-SOURCES = [
-    "[Editable placeholder: add a source about wound dressing absorbency.]",
-    "[Editable placeholder: add a source about antibacterial material properties.]",
-    "[Editable placeholder: add a source about material cost or availability.]",
-]
