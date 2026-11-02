@@ -24,7 +24,7 @@ def go_to_next_level(next_level, level_key, level_number):
 
 
 def make_page_options():
-    page_options = ["Home", "Science background", "Materials"]
+    page_options = ["Home", "🔬 Wound Healing Science", "🧬 Dressing Materials"]
     for level in LEVELS:
         if level["number"] in st.session_state["unlocked_levels"]:
             page_options.append("Level " + str(level["number"]))
@@ -70,7 +70,7 @@ def show_home():
 
 
 def show_science_background():
-    st.title("Science background")
+    st.title("🔬 Wound Healing Science")
     st.write(WHY_DRESSINGS_MATTER)
     st.subheader("Wound healing stages")
     for stage in WOUND_HEALING_STAGES:
@@ -83,7 +83,7 @@ def show_science_background():
 
 
 def show_materials():
-    st.title("Materials")
+    st.title("🧬 Dressing Materials")
     st.write("These placeholder scores are for learning Python only and are not clinical recommendations.")
     st.subheader("Material descriptions")
     for material_name in DESCRIPTIONS:
@@ -114,7 +114,7 @@ def show_materials():
 def show_level_info():
     info_panel = st.popover("⭐ Info") if hasattr(st, "popover") else st.expander("⭐ Info")
     with info_panel:
-        science_tab, materials_tab = st.tabs(["Science Background", "Materials"])
+        science_tab, materials_tab = st.tabs(["🔬 Wound Healing Science", "🧬 Dressing Materials"])
         with science_tab:
             st.write(WHY_DRESSINGS_MATTER)
             st.subheader("Wound healing stages")
@@ -341,9 +341,9 @@ selected_page = st.sidebar.radio(
 
 if selected_page == "Home":
     show_home()
-elif selected_page == "Science background":
+elif selected_page == "🔬 Wound Healing Science":
     show_science_background()
-elif selected_page == "Materials":
+elif selected_page == "🧬 Dressing Materials":
     show_materials()
 else:
     selected_level = None
