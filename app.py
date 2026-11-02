@@ -18,7 +18,8 @@ def get_level_key(level_number):
 def make_page_options():
     page_options = ["Home", "Science background", "Materials"]
     for level in LEVELS:
-        page_options.append("Level " + str(level["number"]))
+        if level["number"] in st.session_state["unlocked_levels"]:
+            page_options.append("Level " + str(level["number"]))
     return page_options
 
 
@@ -105,10 +106,19 @@ def show_materials():
 def show_level(level):
     level_number = level["number"]
     level_key = get_level_key(level_number)
+    attempts_key = "attempts_" + str(level_number)
+    if attempts_key not in st.session_state:
+        st.session_state[attempts_key] = 0
     if level_key not in st.session_state:
         st.session_state[level_key] = level["starter"]
 
     st.title("Level " + str(level_number) + ": " + level["title"])
+    attempts = st.session_state[attempts_key]
+    if st.session_state.get("done_" + str(level_number), False):
+        attempt_number = min(max(attempts, 1), 3)
+    else:
+        attempt_number = min(attempts + 1, 3)
+    st.caption("Attempt " + str(attempt_number) + " of 3")
     st.markdown("**Concept:** " + level["concept"])
     st.subheader("Story")
     st.write(level["story"])
@@ -119,7 +129,11 @@ def show_level(level):
 
     code = st.text_area("Your code", key=level_key, height=230)
     button_columns = st.columns(2)
-    run_clicked = button_columns[0].button("Run and check", key="run_" + str(level_number))
+    run_clicked = button_columns[0].button(
+        "Run and check",
+        key="run_" + str(level_number),
+        disabled=st.session_state.get("done_" + str(level_number), False),
+    )
     reset_clicked = button_columns[1].button("Reset code", key="reset_" + str(level_number))
 
     if reset_clicked:
@@ -128,6 +142,8 @@ def show_level(level):
         st.rerun()
 
     if run_clicked:
+        st.session_state[attempts_key] += 1
+        attempt_number = st.session_state[attempts_key]
         passed, message, output = check_level(level, code)
         run_result = {
             "passed": passed,
@@ -138,12 +154,30 @@ def show_level(level):
         already_done = st.session_state.get("done_" + str(level_number), False)
         if passed and not already_done:
             st.session_state["done_" + str(level_number)] = True
+            points_by_attempt = {1: 10, 2: 7, 3: 4}
+            points = (
+                0
+                if st.session_state.get("solution_viewed_" + str(level_number), False)
+                else points_by_attempt[attempt_number]
+            )
+            st.session_state["total_score"] += points
             if st.session_state.get("solution_viewed_" + str(level_number), False):
                 st.session_state["stars_" + str(level_number)] = 1
             elif st.session_state.get("hint_viewed_" + str(level_number), False):
                 st.session_state["stars_" + str(level_number)] = 2
             else:
                 st.session_state["stars_" + str(level_number)] = 3
+        elif not passed and attempt_number == 3:
+            st.session_state["solution_revealed_" + str(level_number)] = True
+            st.session_state["done_" + str(level_number)] = True
+            st.session_state["stars_" + str(level_number)] = 0
+            st.session_state["solution_viewed_" + str(level_number)] = True
+        if st.session_state.get("done_" + str(level_number), False):
+            next_level = level_number + 1
+            if next_level <= len(LEVELS) and next_level not in st.session_state["unlocked_levels"]:
+                st.session_state["unlocked_levels"].append(next_level)
+            st.session_state["page_to_restore"] = "Level " + str(level_number)
+        st.rerun()
 
     last_result = st.session_state.get("result_" + str(level_number))
     if last_result is not None:
@@ -156,6 +190,7 @@ def show_level(level):
             st.success(last_result["message"])
         else:
             st.error(last_result["message"])
+            st.info("Hint: " + level["hint"])
 
     hint_panel = st.expander(
         "Hint",
@@ -167,15 +202,19 @@ def show_level(level):
     if hint_panel.open:
         st.session_state["hint_viewed_" + str(level_number)] = True
 
-    solution_panel = st.expander(
-        "Solution",
-        key="solution_panel_" + str(level_number),
-        on_change="rerun",
-    )
-    with solution_panel:
+    if st.session_state.get("solution_revealed_" + str(level_number), False):
+        st.subheader("Model solution")
         st.code(level["solution"], language="python")
-    if solution_panel.open:
-        st.session_state["solution_viewed_" + str(level_number)] = True
+    elif st.session_state.get("done_" + str(level_number), False):
+        solution_panel = st.expander(
+            "Solution",
+            key="solution_panel_" + str(level_number),
+            on_change="rerun",
+        )
+        with solution_panel:
+            st.code(level["solution"], language="python")
+        if solution_panel.open:
+            st.session_state["solution_viewed_" + str(level_number)] = True
 
     if level_number == 5 and st.session_state.get("done_5", False):
         st.subheader("Sample dressing scores")
@@ -234,8 +273,30 @@ def show_level(level):
             st.code(bonus["solution"], language="python")
 
 
+if "unlocked_levels" not in st.session_state:
+    st.session_state["unlocked_levels"] = [1]
+    for level in LEVELS:
+        level_number = level["number"]
+        if (
+            level_number in st.session_state["unlocked_levels"]
+            and st.session_state.get("done_" + str(level_number), False)
+        ):
+            next_level = level_number + 1
+            if next_level <= len(LEVELS):
+                st.session_state["unlocked_levels"].append(next_level)
+if "total_score" not in st.session_state:
+    st.session_state["total_score"] = 0
+
 st.sidebar.title("Course pages")
-selected_page = st.sidebar.radio("Pages", make_page_options(), format_func=format_page_option)
+st.sidebar.metric("Total points", st.session_state["total_score"])
+if "page_to_restore" in st.session_state:
+    st.session_state["course_page"] = st.session_state.pop("page_to_restore")
+selected_page = st.sidebar.radio(
+    "Pages",
+    make_page_options(),
+    format_func=format_page_option,
+    key="course_page",
+)
 
 if selected_page == "Home":
     show_home()
