@@ -76,14 +76,24 @@ def show_home():
 def show_science_background():
     st.title("🔬 Wound Healing Science")
     st.write(WHY_DRESSINGS_MATTER)
+
+    def show_entries(entries):
+        for entry in entries:
+            if isinstance(entry, dict):
+                entry_name = entry.get("name")
+                entry_description = entry.get("description")
+            elif isinstance(entry, (tuple, list)) and len(entry) >= 2:
+                entry_name, entry_description = entry[0], entry[1]
+            else:
+                continue
+            if entry_name is not None:
+                st.markdown("**" + str(entry_name) + "**")
+                st.write(entry_description)
+
     st.subheader("Wound healing stages")
-    for stage in WOUND_HEALING_STAGES:
-        st.markdown("**" + stage["name"] + "**")
-        st.write(stage["description"])
+    show_entries(WOUND_HEALING_STAGES)
     st.subheader("Burn degrees")
-    for burn in BURN_DEGREES:
-        st.markdown("**" + burn["name"] + "**")
-        st.write(burn["description"])
+    show_entries(BURN_DEGREES)
 
 
 def show_materials():
