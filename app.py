@@ -15,6 +15,14 @@ def get_level_key(level_number):
     return "level_" + str(level_number)
 
 
+def go_to_next_level(next_level, level_key, level_number):
+    st.session_state["current_level"] = next_level
+    st.session_state["attempts_" + str(next_level)] = 0
+    st.session_state[level_key] = ""
+    st.session_state.pop("result_" + str(level_number), None)
+    st.session_state["page_to_restore"] = "Level " + str(next_level)
+
+
 def make_page_options():
     page_options = ["Home", "Science background", "Materials"]
     for level in LEVELS:
@@ -276,14 +284,13 @@ def show_level(level):
     if st.session_state.get("done_" + str(level_number), False):
         if level_number == len(LEVELS):
             st.success("You finished all levels! Final score: " + str(st.session_state["total_score"]))
-        elif st.button("Next Level ➡️", key="next_level_button_" + str(level_number)):
-            next_level = level_number + 1
-            st.session_state["current_level"] = next_level
-            st.session_state["attempts_" + str(next_level)] = 0
-            st.session_state[level_key] = ""
-            st.session_state.pop("result_" + str(level_number), None)
-            st.session_state["page_to_restore"] = "Level " + str(next_level)
-            st.rerun()
+        else:
+            st.button(
+                "Next Level ➡️",
+                key="next_level_button_" + str(level_number),
+                on_click=go_to_next_level,
+                args=(level_number + 1, level_key, level_number),
+            )
 
 
 if "unlocked_levels" not in st.session_state:
