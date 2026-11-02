@@ -111,6 +111,26 @@ def show_materials():
         st.write(source)
 
 
+def show_level_info():
+    info_panel = st.popover("⭐ Info") if hasattr(st, "popover") else st.expander("⭐ Info")
+    with info_panel:
+        science_tab, materials_tab = st.tabs(["Science Background", "Materials"])
+        with science_tab:
+            st.write(WHY_DRESSINGS_MATTER)
+            st.subheader("Wound healing stages")
+            for stage in WOUND_HEALING_STAGES:
+                st.markdown("**" + stage["name"] + "**")
+                st.write(stage["description"])
+            st.subheader("Burn degrees")
+            for burn in BURN_DEGREES:
+                st.markdown("**" + burn["name"] + "**")
+                st.write(burn["description"])
+        with materials_tab:
+            for material_name in DESCRIPTIONS:
+                st.subheader(material_name)
+                st.write(DESCRIPTIONS[material_name])
+
+
 def show_level(level):
     level_number = level["number"]
     st.session_state["current_level"] = level_number
@@ -122,6 +142,7 @@ def show_level(level):
         st.session_state[level_key] = level["starter"]
 
     st.title("Level " + str(level_number) + ": " + level["title"])
+    show_level_info()
     attempts = st.session_state[attempts_key]
     if st.session_state.get("done_" + str(level_number), False):
         attempt_number = min(max(attempts, 1), 3)
