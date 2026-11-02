@@ -105,6 +105,7 @@ def show_materials():
 
 def show_level(level):
     level_number = level["number"]
+    st.session_state["current_level"] = level_number
     level_key = get_level_key(level_number)
     attempts_key = "attempts_" + str(level_number)
     if attempts_key not in st.session_state:
@@ -271,6 +272,18 @@ def show_level(level):
                 st.error(bonus_result["message"])
         with st.expander("Bonus solution"):
             st.code(bonus["solution"], language="python")
+
+    if st.session_state.get("done_" + str(level_number), False):
+        if level_number == len(LEVELS):
+            st.success("You finished all levels! Final score: " + str(st.session_state["total_score"]))
+        elif st.button("Next Level ➡️", key="next_level_button_" + str(level_number)):
+            next_level = level_number + 1
+            st.session_state["current_level"] = next_level
+            st.session_state["attempts_" + str(next_level)] = 0
+            st.session_state[level_key] = ""
+            st.session_state.pop("result_" + str(level_number), None)
+            st.session_state["page_to_restore"] = "Level " + str(next_level)
+            st.rerun()
 
 
 if "unlocked_levels" not in st.session_state:
