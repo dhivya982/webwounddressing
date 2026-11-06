@@ -1,4 +1,4 @@
-AUTHOR = "(add name)"
+AUTHOR = "Anitha"
 WHY_DRESSINGS_MATTER = """A dressing covers the wound like a shield, keeping out dirt and germs and protecting new tissue from knocks. Research since the 1960s has shown that wounds kept moist heal faster than wounds left open to dry into a scab, because new skin cells can slide across a moist surface instead of digging under a hard crust. A good dressing also soaks up extra fluid so the skin around the wound doesn't get soggy. By keeping germs out, it lowers the chance of infection."""
 
 WOUND_HEALING_STAGES = [

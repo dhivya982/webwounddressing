@@ -1,4 +1,4 @@
-AUTHOR = "(add name)"
+AUTHOR = "Dhivyadharshini"
 
 
 def check_dressing_record(namespace):

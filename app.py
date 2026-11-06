@@ -19,8 +19,8 @@ apply_styles()
 
 TEAM_MEMBERS = [
     {"name": "Dhivyadharshini M", "field": "Materials Science"},
-    {"name": "(add name)", "field": "Biotechnology"},
-    {"name": "(add name)", "field": "Materials Science"},
+    {"name": "Anitha ", "field": "Biotechnology"},
+    {"name": "Lakshanna V", "field": "Materials Science"},
 ]
 
 

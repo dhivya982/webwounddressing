@@ -1,4 +1,4 @@
-AUTHOR = "(add name)"
+AUTHOR = "Lakshanna V"
 
 # These sample scores are for learning only, not clinical recommendations.
 DRESSINGS = {
