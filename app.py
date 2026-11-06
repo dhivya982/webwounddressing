@@ -10,9 +10,18 @@ from levels import LEVELS
 from materials_b import DRESSINGS, SOURCES, WEIGHTS
 from materials_c import DESCRIPTIONS
 from runner import check_level
+from styles import apply_styles
 
 
 st.set_page_config(page_title="Learn Python with Wound Dressings", layout="wide")
+apply_styles()
+
+
+TEAM_MEMBERS = [
+    {"name": "Dhivyadharshini M", "field": "Materials Science"},
+    {"name": "(add name)", "field": "Biotechnology"},
+    {"name": "(add name)", "field": "Materials Science"},
+]
 
 
 def get_level_key(level_number):
@@ -50,27 +59,73 @@ def format_page_option(page):
 
 
 def show_home():
-    st.title("Learn Python with Wound Dressings")
+    st.markdown(
+        """
+        <div class="hero-banner">
+            <h1>Learn Python with Wound Dressings</h1>
+            <p>Explore Python through wound-healing science and sample dressing data.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.write(
         "A beginner course that uses sample wound-dressing properties to teach core Python concepts. "
         "The material is educational and is not medical advice."
     )
     total_stars = 0
+    levels_completed = 0
     for level in LEVELS:
-        total_stars += st.session_state.get("stars_" + str(level["number"]), 0)
-    st.subheader("Total stars: " + str(total_stars) + " / 24")
-    st.subheader("How to use the course")
+        level_number = level["number"]
+        total_stars += st.session_state.get("stars_" + str(level_number), 0)
+        if st.session_state.get("done_" + str(level_number), False):
+            levels_completed += 1
+
+    st.markdown('<div class="section-heading">Your progress</div>', unsafe_allow_html=True)
+    stats_columns = st.columns(3)
+    stat_items = [
+        ("Levels completed", str(levels_completed) + " / " + str(len(LEVELS))),
+        ("Total points", str(st.session_state["total_score"])),
+        ("Total stars", str(total_stars) + " / 24"),
+    ]
+    for column, stat_item in zip(stats_columns, stat_items):
+        label, value = stat_item
+        column.markdown(
+            '<div class="stat-card"><span>' + label + '</span><strong>' + value + "</strong></div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<div class="section-heading">Meet the team</div>', unsafe_allow_html=True)
+    team_columns = st.columns(3)
+    for column, member in zip(team_columns, TEAM_MEMBERS):
+        column.markdown(
+            '<div class="team-card"><strong>' + member["name"] + "</strong><span>"
+            + member["field"] + "</span></div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<div class="section-heading">How it works</div>', unsafe_allow_html=True)
+    how_columns = st.columns(3)
+    how_steps = [
+        ("1. Learn", "Discover a Python concept and the science behind it."),
+        ("2. Code", "Edit the starter code and check your solution."),
+        ("3. Heal the burn", "Use what you learned to solve the next challenge."),
+    ]
+    for column, step in zip(how_columns, how_steps):
+        title, description = step
+        column.markdown(
+            '<div class="how-card"><strong>' + title + "</strong><span>"
+            + description + "</span></div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<div class="section-heading">Ready to begin?</div>', unsafe_allow_html=True)
     st.write(
         "Choose a page from the sidebar. Read the science and materials pages, then work through the "
         "eight independent levels. Edit the starter code, run the checks, and use hints or solutions when needed."
     )
-    st.subheader("Team")
-    team_rows = [
-        {"Role": "Biotechnology content", "Name": "(add name)"},
-        {"Role": "Materials data and scoring", "Name": "(add name)"},
-        {"Role": "Materials descriptions", "Name": "(add name)"},
-    ]
-    st.table(pd.DataFrame(team_rows))
+    if st.button("Start Level 1", key="start_level_1"):
+        st.session_state["page_to_restore"] = "Level 1"
+        st.rerun()
 
 
 def show_science_background():
@@ -166,6 +221,14 @@ def show_level(level):
     if level_key not in st.session_state:
         st.session_state[level_key] = level["starter"]
 
+    levels_completed = 0
+    for course_level in LEVELS:
+        if st.session_state.get("done_" + str(course_level["number"]), False):
+            levels_completed += 1
+    st.progress(
+        levels_completed / len(LEVELS),
+        text="Course progress: " + str(levels_completed) + " of " + str(len(LEVELS)) + " levels completed",
+    )
     st.title("Level " + str(level_number) + ": " + level["title"])
     show_level_info()
     attempts = st.session_state[attempts_key]
@@ -175,12 +238,15 @@ def show_level(level):
         attempt_number = min(attempts + 1, 3)
     st.caption("Attempt " + str(attempt_number) + " of 3")
     st.markdown("**Concept:** " + level["concept"])
-    st.subheader("Story")
-    st.write(level["story"])
-    st.subheader("Lesson")
-    st.write(level["lesson"])
-    st.subheader("Task")
-    st.write(level["task"])
+    with st.container(border=True):
+        st.subheader("Story")
+        st.write(level["story"])
+    with st.container(border=True):
+        st.subheader("Lesson")
+        st.write(level["lesson"])
+    with st.container(border=True):
+        st.subheader("Task")
+        st.write(level["task"])
 
     code = st.text_area("Your code", key=level_key, height=230)
     button_columns = st.columns(2)
@@ -216,6 +282,7 @@ def show_level(level):
                 else points_by_attempt[attempt_number]
             )
             st.session_state["total_score"] += points
+            st.session_state["pending_points_popup"] = points
             if st.session_state.get("solution_viewed_" + str(level_number), False):
                 st.session_state["stars_" + str(level_number)] = 1
             elif st.session_state.get("hint_viewed_" + str(level_number), False):
@@ -353,7 +420,19 @@ if "unlocked_levels" not in st.session_state:
 if "total_score" not in st.session_state:
     st.session_state["total_score"] = 0
 
-st.sidebar.title("Course pages")
+if "pending_points_popup" in st.session_state:
+    earned_points = st.session_state.pop("pending_points_popup")
+    st.toast("+" + str(earned_points) + " points!", icon="🎉")
+    st.markdown(
+        '<div class="points-popup"><strong>+' + str(earned_points)
+        + ' points!</strong> Great work — keep going!</div>',
+        unsafe_allow_html=True,
+    )
+
+st.sidebar.markdown(
+    '<div class="sidebar-brand">Course pages</div>',
+    unsafe_allow_html=True,
+)
 st.sidebar.metric("Total points", st.session_state["total_score"])
 if "page_to_restore" in st.session_state:
     st.session_state["course_page"] = st.session_state.pop("page_to_restore")
